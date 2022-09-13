@@ -1,8 +1,10 @@
 const mongoose = require('mongoose');
-
-main().then(res=> console.log("db connected successfully...!!!"))
-main().catch(err => console.log(err));
+const dotenv = require('dotenv');
+dotenv.config();
+main().then(res => console.log("Database connected successfully...!!!"))
+main().catch(err => console.log(`An error accured during database connection:`, err));
 
 async function main() {
-  await mongoose.connect('mongodb://0.0.0.0:27017/chatbes_server');
+  const DATABASE_URL = process.env.NODE_ENV === 'development' ? `mongodb://0.0.0.0:27017/chatbes_server` : `${process.env.CLOUD_DATABASE_URL}`
+  await mongoose.connect(DATABASE_URL);
 }
