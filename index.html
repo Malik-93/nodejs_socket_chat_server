@@ -67,47 +67,141 @@
   <form id="form" action="">
     <input id="input" autocomplete="off" /><button>Send</button>
   </form>
+  <button id="get" onclick="getSetPartnerId()">Get</button>
+  <button id="get" onclick="call()">Call</button>
+  <button id="get" onclick="answer()">Answer</button>
+
+  <h4>Local</h4>
+  <video id="local_video" volume='0' autoplay muted
+    style="height: 300px; width:300px; border-radius: 20px; border-color: #333; border-width: 20px; background: whitesmoke; ">
+  </video>
+  <h4>Remote</h4>
+  <video id="remote_video" volume='0' autoplay muted
+    style="height: 300px; width:300px; border-radius: 20px; border-color: #333; border-width: 20px; background: whitesmoke; ">
+  </video>
+
 </body>
 
 <script src="/socket.io/socket.io.js"></script>
 <script src="https://unpkg.com/peerjs@1.3.2/dist/peerjs.min.js"></script>
 <script>
   var socket = io();
-  var peer = new Peer();
+  var peer = new Peer('', {
+    host: 'localhost',
+    port: 9181,
+    path: '/peer-server',
+    debug: true
+  });
 
   var messages = document.getElementById('messages');
   var form = document.getElementById('form');
   var input = document.getElementById('input');
+  let localPeerId = '';
+  let parnterPeerId = '';
+  // var connect_btn = document.getElementById('connect_btn');
+  function setLocalStream() {
+    var getUserMedia = navigator.getUserMedia || navigator.webkitGetUserMedia || navigator.mozGetUserMedia;
+    getUserMedia({ video: true, audio: true }, function (stream) {
+      // Show stream in some video/canvas element.
+      const local_video_element = document.getElementById("local_video");
+      local_video_element.srcObject = stream;
 
+      // const remote_video_element = document.getElementById("remote_video");
+      // remote_video_element.srcObject = stream;
+    }, function (err) {
+      console.log('Failed to get local stream', err);
+    });
+  }
+  function call(partnerId) {
+    var getUserMedia = navigator.getUserMedia || navigator.webkitGetUserMedia || navigator.mozGetUserMedia;
+    getUserMedia({ video: true, audio: true }, function (stream) {
+      var call = peer.call(partnerId, stream);
+      call.on('stream', function (remoteStream) {
+        // Show stream in some video/canvas element.
+        const local_video_element = document.getElementById("local_video");
+        local_video_element.srcObject = remoteStream;
+
+      });
+    }, function (err) {
+      console.log('Failed to get local stream', err);
+    });
+  }
+  function answer() {
+    var getUserMedia = navigator.getUserMedia || navigator.webkitGetUserMedia || navigator.mozGetUserMedia;
+    peer.on('call', function (call) {
+      getUserMedia({ video: true, audio: true }, function (stream) {
+        call.answer(stream); // Answer the call with an A/V stream.
+        call.on('stream', function (remoteStream) {
+          // Show stream in some video/canvas element.
+          const remote_video_element = document.getElementById("remote_video");
+          remote_video_element.srcObject = remoteStream;
+        });
+      }, function (err) {
+        console.log('Failed to get local stream', err);
+      });
+    });
+  }
+  function getSetPartnerId() {
+    socket.emit('get_partner_peerId', localPeerId);
+  }
   form.addEventListener('submit', function (e) {
     e.preventDefault();
     if (input.value) {
-      socket.emit('send_message', input.value);
+      socket.emit('send_message', { message: `${input.value}`, 'id': 'Mudassir' });
       input.value = '';
     }
   });
 
   socket.on('received_message', function (msg) {
-    var item = document.createElement('li');
-    item.textContent = msg;
-    messages.appendChild(item);
+    var item1 = document.createElement('li');
+    var item2 = document.createElement('li');
+    item1.textContent = `User: ${msg.id}`;
+    item2.textContent = `Message: ${msg.message}`;
+    messages.appendChild(item1);
+    messages.appendChild(item2);
     window.scrollTo(0, document.body.scrollHeight);
   });
 
-  var conn = peer.connect('', {
-    host: 'localhost',
-    port: 8191,
-    path: 'peerjs/peer-server'
-  });
-  // on open will be launch when you successfully connect to PeerServer
-  conn.on('open', function () {
-    // here you have conn.id
-    console.log('Peer connection established successfully: ');
-    conn.send('hi!');
-  });
+  socket.on('partner_peerId', function (partnerId) {
+    console.log('partner_peerId', partnerId);
+    parnterPeerId = partnerId;
+    var conn = peer.connect(`${partnerId}`, {
+      host: 'localhost',
+      port: 9181,
+      path: '/peer-server',
+      debug: true
+    });
+    // on open will be launch when you successfully connect to PeerServer
+    conn.on('open', function () {
+      // here you have conn.id
+      console.log('Peer connection established successfully: ');
+      conn.send('hi!');
+    });
+  })
+
+
+
   peer.on('open', function (id) {
     console.log('My peer ID is: ' + id);
+    socket.emit('send_peerId', id);
+    setLocalStream();
+    localPeerId = id;
+    // call(id)
   });
+  peer.on('connection', function (dataConnection) {
+    console.log('My peer Data Connection: ' + dataConnection);
+    dataConnection.on('data', function (data) {
+      // Will print 'hi!'
+      console.log('Data from peer connection ->', data);
+    });
+  });
+  peer.on('close', function () {
+    console.log('My peer connection closed');
+  });
+  peer.on('disconnected', function () {
+    console.log('My peer disconnected');
+  });
+  peer.on('error', function (err) { console.log('An error accured in peer connection', err); })
 
 </script>
 

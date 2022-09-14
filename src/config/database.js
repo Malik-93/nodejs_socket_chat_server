@@ -1,7 +1,7 @@
 const mongoose = require('mongoose');
 const dotenv = require('dotenv');
 dotenv.config();
-main().then(res => console.log("Database connected successfully...!!!"))
+main().then(res => console.log("Connected to database successfully...!!!"))
 main().catch(err => console.log(`An error accured during database connection:`, err));
 
 async function main() {
