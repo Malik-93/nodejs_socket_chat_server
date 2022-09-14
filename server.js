@@ -10,7 +10,7 @@ require('./src/config/database');
 const user_routes = require('./src/user/users.routes');
 const io = new Server(server);
 const port = process.env.PORT || 8191;
-PeerServer({ path: '/peer-server', port: process.env.PEER_PORT || 9181 });
+PeerServer({ path: '/peer-server', port: process.env.PEER_PORT || 9181 }, peerServer => console.log(`Peer server is listening on port ${process.env.PEER_PORT}`));
 let peerIds = [];
 // const peerServer = ExpressPeerServer(server, { path: '/peer-server', port: 9181 });
 // peerServer.on('connection', (client) => { console.log('[peerServer].connection', client); });
