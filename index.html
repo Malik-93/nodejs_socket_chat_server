@@ -67,16 +67,14 @@
   <form id="form" action="">
     <input id="input" autocomplete="off" /><button>Send</button>
   </form>
-  <button id="get" onclick="getSetPartnerId()">Get</button>
-  <button id="get" onclick="call()">Call</button>
-  <button id="get" onclick="answer()">Answer</button>
-
+  <input placeholder="partner Id" id="peer_input_id" />
+  <button id="call_btn">Video Call</button>
   <h4>Local</h4>
-  <video id="local_video" volume='0' autoplay muted
+  <video id="local_video" volume='0' autoplay
     style="height: 300px; width:300px; border-radius: 20px; border-color: #333; border-width: 20px; background: whitesmoke; ">
   </video>
   <h4>Remote</h4>
-  <video id="remote_video" volume='0' autoplay muted
+  <video id="remote_video" volume='0' autoplay
     style="height: 300px; width:300px; border-radius: 20px; border-color: #333; border-width: 20px; background: whitesmoke; ">
   </video>
 
@@ -87,7 +85,7 @@
 <script>
   var socket = io();
   var peer = new Peer('', {
-    host: 'dashboard.heroku.com',
+    host: '192.168.100.34',
     port: 9181,
     path: '/peer-server',
     debug: true
@@ -96,54 +94,36 @@
   var messages = document.getElementById('messages');
   var form = document.getElementById('form');
   var input = document.getElementById('input');
-  let localPeerId = '';
-  let parnterPeerId = '';
-  // var connect_btn = document.getElementById('connect_btn');
-  function setLocalStream() {
-    var getUserMedia = navigator.getUserMedia || navigator.webkitGetUserMedia || navigator.mozGetUserMedia;
-    getUserMedia({ video: true, audio: true }, function (stream) {
-      // Show stream in some video/canvas element.
-      const local_video_element = document.getElementById("local_video");
-      local_video_element.srcObject = stream;
+  var call_btn = document.getElementById('call_btn');
+  var peer_input = document.getElementById('peer_input_id');
+  var getUserMedia = navigator.getUserMedia ||
+    navigator.webkitGetUserMedia ||
+    navigator.mozGetUserMedia ||
+    navigator.msGetUserMedia;
 
-      // const remote_video_element = document.getElementById("remote_video");
-      // remote_video_element.srcObject = stream;
-    }, function (err) {
-      console.log('Failed to get local stream', err);
-    });
-  }
   function call(partnerId) {
-    var getUserMedia = navigator.getUserMedia || navigator.webkitGetUserMedia || navigator.mozGetUserMedia;
-    getUserMedia({ video: true, audio: true }, function (stream) {
-      var call = peer.call(partnerId, stream);
-      call.on('stream', function (remoteStream) {
-        // Show stream in some video/canvas element.
-        const local_video_element = document.getElementById("local_video");
-        local_video_element.srcObject = remoteStream;
+    getUserMedia({ video: true, audio: true }, function (localStream) {
+      // Show Local stream in some video/canvas element.
+      const local_video_element = document.getElementById("local_video");
+      local_video_element.srcObject = localStream;
+      var call = peer.call(partnerId, localStream);
 
+      call.on('stream', function (remoteStream) {
+        // Show Remote stream in some video/canvas element.
+        const remote_video_element = document.getElementById("remote_video");
+        remote_video_element.srcObject = remoteStream;
       });
     }, function (err) {
       console.log('Failed to get local stream', err);
     });
   }
-  function answer() {
-    var getUserMedia = navigator.getUserMedia || navigator.webkitGetUserMedia || navigator.mozGetUserMedia;
-    peer.on('call', function (call) {
-      getUserMedia({ video: true, audio: true }, function (stream) {
-        call.answer(stream); // Answer the call with an A/V stream.
-        call.on('stream', function (remoteStream) {
-          // Show stream in some video/canvas element.
-          const remote_video_element = document.getElementById("remote_video");
-          remote_video_element.srcObject = remoteStream;
-        });
-      }, function (err) {
-        console.log('Failed to get local stream', err);
-      });
-    });
-  }
-  function getSetPartnerId() {
-    socket.emit('get_partner_peerId', localPeerId);
-  }
+  // Call
+  call_btn.addEventListener('click', function (e) {
+    e.preventDefault();
+    console.log('peer_input.nodeValue', peer_input.value);
+    call(peer_input.value);
+  })
+  // Form
   form.addEventListener('submit', function (e) {
     e.preventDefault();
     if (input.value) {
@@ -151,6 +131,9 @@
       input.value = '';
     }
   });
+  socket.on('connected', socketId => {
+    console.log('Socket Client :', socketId);
+  })
 
   socket.on('received_message', function (msg) {
     var item1 = document.createElement('li');
@@ -161,38 +144,34 @@
     messages.appendChild(item2);
     window.scrollTo(0, document.body.scrollHeight);
   });
-
-  socket.on('partner_peerId', function (partnerId) {
-    console.log('partner_peerId', partnerId);
-    parnterPeerId = partnerId;
-    var conn = peer.connect(`${partnerId}`, {
-      host: 'localhost',
-      port: 9181,
-      path: '/peer-server',
-      debug: true
-    });
-    // on open will be launch when you successfully connect to PeerServer
-    conn.on('open', function () {
-      // here you have conn.id
-      console.log('Peer connection established successfully: ');
-      conn.send('hi!');
-    });
-  })
-
-
-
+  //  Local Peer ID
   peer.on('open', function (id) {
     console.log('My peer ID is: ' + id);
-    socket.emit('send_peerId', id);
-    setLocalStream();
-    localPeerId = id;
-    // call(id)
   });
+
+
   peer.on('connection', function (dataConnection) {
-    console.log('My peer Data Connection: ' + dataConnection);
+    console.log('My peer Data Connection: ' + JSON.stringify(dataConnection));
     dataConnection.on('data', function (data) {
-      // Will print 'hi!'
+      // Will print 'hi! Greeting from ${parnterPeerId}'
       console.log('Data from peer connection ->', data);
+    });
+  });
+
+  peer.on('call', function (call) {
+    getUserMedia({ video: true, audio: true }, function (localStream) {
+
+      const local_video_element = document.getElementById("local_video");
+      local_video_element.srcObject = localStream;
+
+      call.answer(localStream); // Answer the call with an A/V stream.
+      call.on('stream', function (remoteStream) {
+        // Show stream in some video/canvas element.
+        const remote_video_element = document.getElementById("remote_video");
+        remote_video_element.srcObject = remoteStream;
+      });
+    }, function (err) {
+      console.log('Failed to get local stream', err);
     });
   });
   peer.on('close', function () {
