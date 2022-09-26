@@ -109,7 +109,6 @@
   const PEER_PORT = '8191';
   const CLOUD_SERVER_HOST = 'cibaksocketio.herokuapp.com'
   const CLOUD_SERVER = `https://`;
-  console.log(process.env)
   var socket = io.connect(`https://${CLOUD_SERVER_HOST}`, {
     query: 'userId=' + USER_ID
   });
