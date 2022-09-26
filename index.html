@@ -10,6 +10,12 @@
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
     }
 
+    table,
+    th,
+    td {
+      border: 1px solid black;
+    }
+
     #form {
       background: rgba(0, 0, 0, 0.15);
       padding: 0.25rem;
@@ -63,12 +69,26 @@
 
 <body>
   <h2>Client Side</h2>
+  <table id="users">
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>SocketID</th>
+        <th>PeerID</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody id="user_table_body">
+
+    </tbody>
+
+  </table>
   <ul id="messages"></ul>
   <form id="form" action="">
     <input id="input" autocomplete="off" /><button>Send</button>
   </form>
-  <input placeholder="partner Id" id="peer_input_id" />
-  <button id="call_btn">Video Call</button>
+  <!-- <input placeholder="partner Id" id="peer_input_id" />
+  <button id="call_btn">Video Call</button> -->
   <h4>Local</h4>
   <video id="local_video" volume='0' autoplay
     style="height: 300px; width:300px; border-radius: 20px; border-color: #333; border-width: 20px; background: whitesmoke; ">
@@ -103,8 +123,8 @@
     navigator.webkitGetUserMedia ||
     navigator.mozGetUserMedia ||
     navigator.msGetUserMedia;
-
   function call(partnerId) {
+    console.log('[call].partnerId', partnerId);
     getUserMedia({ video: true, audio: true }, function (localStream) {
       // Show Local stream in some video/canvas element.
       const local_video_element = document.getElementById("local_video");
@@ -121,11 +141,11 @@
     });
   }
   // Call
-  call_btn.addEventListener('click', function (e) {
-    e.preventDefault();
-    console.log('peer_input.nodeValue', peer_input.value);
-    call(peer_input.value);
-  })
+  // call_btn.addEventListener('click', function (e) {
+  //   e.preventDefault();
+  //   console.log('peer_input.nodeValue', peer_input.value);
+  //   call(peer_input.value);
+  // })
   // Form
   form.addEventListener('submit', function (e) {
     e.preventDefault();
@@ -167,6 +187,7 @@
   });
 
   peer.on('call', function (call) {
+    console.log('cal...', call);
     getUserMedia({ video: true, audio: true }, function (localStream) {
 
       const local_video_element = document.getElementById("local_video");
@@ -189,6 +210,37 @@
     console.log('My peer disconnected');
   });
   peer.on('error', function (err) { console.log('An error accured in peer connection', err); })
+
+  window.document.onload = function (e) {
+    console.log('ready..');
+    fetch('/User/users').then(res => res.json()).then(({ data }) => {
+      const _users = data.users
+      console.log('_users....', _users);
+      var user_table_body = document.getElementById('user_table_body');
+      (_users || []).map((user, index) => {
+        let tr = document.createElement('tr');
+        let item1 = document.createElement('td');
+        let item2 = document.createElement('td');
+        let item3 = document.createElement('td');
+        let item4 = document.createElement('td');
+        let btn = document.createElement('input');
+        btn.type = "button";
+        btn.className = "btn";
+        btn.value = "Call";
+        btn.onclick = function () { call(user.peerID) }
+        item1.textContent = `${user.name}`;
+        item2.textContent = `${user.socketID}`;
+        item3.textContent = `${user.peerID}`;
+        item4.appendChild(btn);
+        tr.appendChild(item1);
+        tr.appendChild(item2);
+        tr.appendChild(item3);
+        tr.appendChild(item4);
+        user_table_body.appendChild(tr)
+      })
+    }).catch((error) => { console.log('__Error__', error) })
+  }
+  window.document.onload();
 
 </script>
 
