@@ -107,16 +107,16 @@
   const HOST = '192.168.100.34:8191'; // cibaksocketio.herokuapp.com
   const SOCKET_PORT = '9181';
   const PEER_PORT = '8191';
-  const CLOUD_SERVER_HOST = 'cibaksocketio.herokuapp.com'
+  const CLOUD_SERVER_HOST = 'cibaksocketio.herokuapp.com' //https://cibaksocketio.herokuapp.com/
   const CLOUD_SERVER = `https://`;
-  var socket = io.connect(`https://${CLOUD_SERVER_HOST}`, {
+  var socket = io.connect(undefined, {
     query: 'userId=' + USER_ID
   });
-  var peer = new Peer('', {
-    host: CLOUD_SERVER_HOST,
+  var peer = new Peer(undefined, {
+    // host: CLOUD_SERVER_HOST,
     // port: 9181,
     path: '/peer-server',
-    debug: true
+    // debug: true
   });
 
   var messages = document.getElementById('messages');
