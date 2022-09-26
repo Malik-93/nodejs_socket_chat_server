@@ -1,6 +1,6 @@
 const { networkInterfaces } = require('os');
 const { find_user, update_existing_user } = require('../user/user.modules');
-const get_network_ap = () => {
+const get_network_ip = () => {
     const nets = networkInterfaces();
     let networkIP = ''
     for (const name of Object.keys(nets)) {
@@ -27,6 +27,6 @@ const update_user_connections = async (userID = '', socketID = '', peerID = '') 
     }
 }
 module.exports = {
-    get_network_ap,
+    get_network_ip,
     update_user_connections
 }

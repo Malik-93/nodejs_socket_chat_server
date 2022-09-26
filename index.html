@@ -87,8 +87,6 @@
   <form id="form" action="">
     <input id="input" autocomplete="off" /><button>Send</button>
   </form>
-  <!-- <input placeholder="partner Id" id="peer_input_id" />
-  <button id="call_btn">Video Call</button> -->
   <h4>Local</h4>
   <video id="local_video" volume='0' autoplay
     style="height: 300px; width:300px; border-radius: 20px; border-color: #333; border-width: 20px; background: whitesmoke; ">
@@ -104,19 +102,19 @@
 <script src="https://unpkg.com/peerjs@1.3.2/dist/peerjs.min.js"></script>
 <script>
   const USER_ID = '63315aea77364cdb9763e600';
-  const HOST = '192.168.100.34:8191'; // cibaksocketio.herokuapp.com
-  const SOCKET_PORT = '9181';
-  const PEER_PORT = '8191';
-  const CLOUD_SERVER_HOST = 'cibaksocketio.herokuapp.com' //https://cibaksocketio.herokuapp.com/
+  const HOST = '192.168.100.34'; // cibaksocketio.herokuapp.com
+  const SOCKET_PORT = 8191;
+  const PEER_PORT = 9181;
+  const CLOUD_SERVER_HOST = 'cibaksocketio.herokuapp.com'
   const CLOUD_SERVER = `https://`;
-  var socket = io.connect(undefined, {
+  var socket = io.connect(`http://${HOST}:${SOCKET_PORT}`, {
     query: 'userId=' + USER_ID
   });
   var peer = new Peer(undefined, {
-    // host: CLOUD_SERVER_HOST,
-    // port: 9181,
+    host: HOST,
+    port: PEER_PORT,
     path: '/peer-server',
-    // debug: true
+    debug: true
   });
 
   var messages = document.getElementById('messages');
@@ -145,13 +143,6 @@
       console.log('Failed to get local stream', err);
     });
   }
-  // Call
-  // call_btn.addEventListener('click', function (e) {
-  //   e.preventDefault();
-  //   console.log('peer_input.nodeValue', peer_input.value);
-  //   call(peer_input.value);
-  // })
-  // Form
   form.addEventListener('submit', function (e) {
     e.preventDefault();
     if (input.value) {
@@ -192,7 +183,7 @@
   });
 
   peer.on('call', function (call) {
-    console.log('cal...', call);
+    // console.log('cal...', call);
     getUserMedia({ video: true, audio: true }, function (localStream) {
 
       const local_video_element = document.getElementById("local_video");

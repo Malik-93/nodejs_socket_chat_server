@@ -6,9 +6,9 @@ const cors = require('cors');
 const initPeer = require('./src/peer');
 const initSocketIO = require('./src/socket');
 const user_routes = require('./src/user/users.routes');
-const { get_network_ap } = require('./src/utils');
+const { get_network_ip } = require('./src/utils');
 const PORT = process.env.PORT || 8191;
-const localNetworkIP = get_network_ap();
+const localNetworkIP = get_network_ip();
 const dotenv = require('dotenv');
 dotenv.config();
 require('./src/config/database');
@@ -24,6 +24,6 @@ const server = http.createServer(app);
 initSocketIO(server);
 // INIT PEER SERVER CONNECTIONS
 initPeer(localNetworkIP);
-server.listen(PORT, () => {
+server.listen(PORT, `${localNetworkIP}`, () => {
   console.log(`Server is listening at ipv4 http://${localNetworkIP}:${PORT}/`);
 });
