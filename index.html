@@ -103,13 +103,19 @@
 <script src="/socket.io/socket.io.js"></script>
 <script src="https://unpkg.com/peerjs@1.3.2/dist/peerjs.min.js"></script>
 <script>
-  const USER_ID = '63315aea77364cdb9763e600'
-  var socket = io.connect('http://192.168.100.34:8191', {
+  const USER_ID = '63315aea77364cdb9763e600';
+  const HOST = '192.168.100.34:8191'; // cibaksocketio.herokuapp.com
+  const SOCKET_PORT = '9181';
+  const PEER_PORT = '8191';
+  const CLOUD_SERVER_HOST = 'cibaksocketio.herokuapp.com'
+  const CLOUD_SERVER = `https://`;
+  console.log(process.env)
+  var socket = io.connect(`https://${CLOUD_SERVER_HOST}`, {
     query: 'userId=' + USER_ID
   });
   var peer = new Peer('', {
-    host: '192.168.100.34',
-    port: 9181,
+    host: CLOUD_SERVER_HOST,
+    // port: 9181,
     path: '/peer-server',
     debug: true
   });
