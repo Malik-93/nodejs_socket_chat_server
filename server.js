@@ -25,5 +25,5 @@ initSocketIO(server);
 // INIT PEER SERVER CONNECTIONS
 initPeer();
 server.listen(1000, () => {
-  console.log(`Server is listening at ${process.env.CLOUD_SERVER_URL}`);
+  console.log(`Server is listening at ${process.env.CLOUD_SERVER_URL} using PORT ${process.env.PORT}`);
 });

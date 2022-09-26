@@ -103,8 +103,8 @@
 <script>
   const USER_ID = '63315aea77364cdb9763e600';
   const HOST = '192.168.100.34'; // cibaksocketio.herokuapp.com
-  const SOCKET_PORT = 800;
-  const PEER_PORT = 9000;
+  const SOCKET_PORT = 8000;
+  const PEER_PORT = 9161;
   const CLOUD_SERVER_HOST = 'cibaksocketio.herokuapp.com'
   const CLOUD_SERVER = `https://${CLOUD_SERVER_HOST}`;
   var socket = io.connect(undefined, {
@@ -112,7 +112,7 @@
   });
   var peer = new Peer(undefined, {
     // host: HOST,
-    // port: PEER_PORT,
+    port: PEER_PORT,
     path: '/peer-server',
     // debug: true
   });
