@@ -6,11 +6,11 @@ const cors = require('cors');
 const initPeer = require('./src/peer');
 const initSocketIO = require('./src/socket');
 const user_routes = require('./src/user/users.routes');
-const { get_network_ip } = require('./src/utils');
-const PORT = process.env.PORT || 8191;
-const localNetworkIP = get_network_ip();
+// const { get_network_ip } = require('./src/utils');
+// const localNetworkIP = get_network_ip();
 const dotenv = require('dotenv');
 dotenv.config();
+const PORT = process.env.PORT;
 require('./src/config/database');
 app.use(bodyParser.urlencoded({ extended: true }))
 app.use(express.json())
@@ -23,7 +23,7 @@ const server = http.createServer(app);
 // INIT SOCKET IO CONNECTIONS
 initSocketIO(server);
 // INIT PEER SERVER CONNECTIONS
-initPeer(localNetworkIP);
-server.listen(PORT, `${localNetworkIP}`, () => {
-  console.log(`Server is listening at ipv4 http://${localNetworkIP}:${PORT}/`);
+initPeer();
+server.listen(1000, () => {
+  console.log(`Server is listening at ${process.env.CLOUD_SERVER_URL}`);
 });
