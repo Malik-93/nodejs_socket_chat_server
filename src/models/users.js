@@ -3,7 +3,7 @@ const mongoose = require('mongoose');
 const Schema = mongoose.Schema;
 
 const Users = new Schema({
-    name: String, 
+    name: String,
     phoneNumber: String,
     profileImage: {
         type: String,
@@ -12,7 +12,9 @@ const Users = new Schema({
     about: String,
     selectedCountry: {
         type: Object
-    }
+    },
+    socketID: String,
+    peerID: String
 })
 
 module.exports = mongoose.model("users", Users)
