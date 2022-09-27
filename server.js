@@ -24,6 +24,7 @@ const server = http.createServer(app);
 initSocketIO(server);
 // INIT PEER SERVER CONNECTIONS
 initPeer();
+
 server.listen(PORT, () => {
   console.log(`Server is listening at ${process.env.CLOUD_SERVER_URL} using PORT ${process.env.PORT}`);
 });
