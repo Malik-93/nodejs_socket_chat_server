@@ -1,11 +1,11 @@
-const { PeerServer } = require('peer');
+const { PeerServer, ExpressPeerServer } = require('peer');
 const fs = require('fs');
 const path = require('path');
-module.exports = (localNetworkIP = '') => {
+module.exports = (server) => {
     function generateClientId() {
         return (Math.random().toString(36) + '0000000000000000000').substr(2, 16);
     }
-    const peerServer = PeerServer({
+    const peerServer = ExpressPeerServer(server, {
         path: '/peer-server',
         port: process.env.PEER_PORT || 9181,
         generateClientId,
@@ -19,5 +19,6 @@ module.exports = (localNetworkIP = '') => {
     peerServer.on('connection', (client) => console.log('[peerServer].connection', client.getId()));
     peerServer.on('disconnect', (client) => console.log('[peerServer].disconnect', client.getId()));
     peerServer.on('error', err => console.log('[peerServer].error', err));
+    return peerServer;
     // app.use('/peerjs', peerServer);
 }

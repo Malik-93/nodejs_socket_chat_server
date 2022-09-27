@@ -12,6 +12,7 @@ const dotenv = require('dotenv');
 dotenv.config();
 const PORT = process.env.PORT;
 require('./src/config/database');
+app.enable('trust proxy');
 app.use(bodyParser.urlencoded({ extended: true }))
 app.use(express.json())
 app.get('/', (req, res) => {
@@ -23,7 +24,10 @@ const server = http.createServer(app);
 // INIT SOCKET IO CONNECTIONS
 initSocketIO(server);
 // INIT PEER SERVER CONNECTIONS
-initPeer();
+const peerServer = initPeer(server);
+// console.log('peerServer', peerServer);
+app.use('/peerjs', peerServer);
+
 
 server.listen(PORT, () => {
   console.log(`Server is listening at ${process.env.CLOUD_SERVER_URL} using PORT ${process.env.PORT}`);
