@@ -26,7 +26,7 @@ initSocketIO(server);
 // INIT PEER SERVER CONNECTIONS
 const peerServer = initPeer(server);
 // console.log('peerServer', peerServer);
-app.use('/peerjs', peerServer);
+app.use('/peer-server', peerServer);
 
 
 server.listen(PORT, () => {
