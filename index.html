@@ -110,13 +110,14 @@
   var socket = io.connect(CLOUD_SERVER, {
     query: 'userId=' + USER_ID
   });
-  var peer = new Peer({
+  var peer = new Peer(undefined, {
     secure: true,
     host: HOST,
     port: PEER_PORT,
     path: '/peer-server',
     // debug: true
   });
+  console.log('peer', peer);
 
   var messages = document.getElementById('messages');
   var form = document.getElementById('form');
