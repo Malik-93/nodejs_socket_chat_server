@@ -1,5 +1,6 @@
 const { networkInterfaces } = require('os');
 const { find_user, update_existing_user } = require('../user/user.modules');
+const mongoose = require('mongoose');
 const get_network_ip = () => {
     const nets = networkInterfaces();
     let networkIP = ''
@@ -17,14 +18,16 @@ const get_network_ip = () => {
     return `${networkIP}`
 }
 const update_user_connections = async (userID = '', socketID = '', peerID = '') => {
-    const results = await find_user({ body: { user_id: userID } });
-    // console.log('results', results);
-    try {
-        if (results.user) await update_existing_user({ body: { user: results.user, socketID, peerID } })
-        else console.log('[socket.connection] user not found...');
-    } catch (error) {
-        console.log('error...', error);
-    }
+    if (mongoose.Types.ObjectId.isValid(userID)) {
+        const results = await find_user({ body: { user_id: userID } });
+        // console.log('results', results);
+        try {
+            if (results.user) await update_existing_user({ body: { user: results.user, socketID, peerID } })
+            else console.log('[socket.connection] user not found...');
+        } catch (error) {
+            console.log('error...', error);
+        }
+    } else console.log(`[update_user_connections] User id is missing...`)
 }
 module.exports = {
     get_network_ip,
