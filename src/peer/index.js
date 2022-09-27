@@ -7,7 +7,7 @@ module.exports = (localNetworkIP = '') => {
     }
     const peerServer = PeerServer({
         path: '/peer-server',
-        port: process.env.PEER_PORT || 443,
+        port: process.env.PEER_PORT || 9181,
         generateClientId,
         ssl: {
             key: fs.readFileSync(path.join(__dirname, '/local-https-cert/ssl.key')),
