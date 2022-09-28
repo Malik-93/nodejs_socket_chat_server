@@ -47,6 +47,12 @@ module.exports = server => {
             io.emit('received_message', data)
         })
 
+        socket.on('call_config', (data) => {
+            console.log("received call_config from client side", data)
+            // console.log('messages', messages);
+            io.emit('call_config', data)
+        })
+
         socket.on('disconnect', () => {
             console.log('A socket user disconnected');
         });
