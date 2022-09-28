@@ -110,7 +110,7 @@
   var socket = io.connect(CLOUD_SERVER, {
     query: 'userId=' + USER_ID
   });
-  var peer = new Peer(undefined, {
+  var peer = new Peer(CLOUD_SERVER, {
     secure: true,
     host: HOST,
     port: PEER_PORT,
