@@ -111,11 +111,11 @@
     query: 'userId=' + USER_ID
   });
   var peer = new Peer(SERVER, {
-    // secure: true,
+    secure: true,
     host: HOST,
     port: PEER_PORT,
     path: '/peer-server',
-    debug: true
+    // debug: true
   });
   console.log('__Peer__', peer);
 
