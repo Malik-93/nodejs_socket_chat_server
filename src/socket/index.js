@@ -42,9 +42,21 @@ module.exports = server => {
             update_user_connections(userId, socketId, peerId);
         })
         socket.on('send_message', (data) => {
-            console.log("received message in server side", data)
+            console.log("received message from client side", data)
             // console.log('messages', messages);
             io.emit('received_message', data)
+        })
+
+        socket.on('call_config', (data) => {
+            console.log("received call_config from client side", data)
+            // console.log('messages', messages);
+            io.emit('call_config', data)
+        })
+
+        socket.on('call_disconnected', (data) => {
+            console.log("received call_disconnected from client side", data)
+            // console.log('messages', messages);
+            io.emit('call_disconnected', data)
         })
 
         socket.on('disconnect', () => {
