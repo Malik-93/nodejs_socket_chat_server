@@ -6,7 +6,7 @@ module.exports = (server) => {
         return (Math.random().toString(36) + '0000000000000000000').substr(2, 16);
     }
     const peerServer = ExpressPeerServer(server, {
-        path: '/',
+        path: '/peer-server',
         port: process.env.PEER_PORT || 9181,
         generateClientId,
         ssl: {

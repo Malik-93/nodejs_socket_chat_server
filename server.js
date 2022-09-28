@@ -28,7 +28,7 @@ initSocketIO(server);
 // INIT PEER SERVER CONNECTIONS
 const peerServer = initPeer(server);
 // console.log('peerServer', peerServer);
-app.use('/peer-server', peerServer);
+app.use('/peerjs', peerServer);
 
 if (is_dev) {
   const networkIP = get_network_ip();
