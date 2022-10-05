@@ -1,6 +1,6 @@
 const { Server } = require("socket.io");
-const { find_user, update_existing_user } = require('../user/user.modules');
 const { update_user_connections } = require("../utils");
+let callers = [];
 module.exports = server => {
     const io = new Server(server);
 
@@ -31,15 +31,16 @@ module.exports = server => {
     io.on('connection', async (socket) => {
         // console.log('socket.handshake', socket.handshake.query);
         console.log('A socket client connected', socket.id);
-        io.emit('socket-connected', socket.id);
+        socket.emit('socket-connected', socket.id);
 
         const userID = socket.handshake.query.userId || '';
         update_user_connections(userID, socket.id, null);
 
-        socket.on('peer-user', data => {
+        socket.on('peer-user', async data => {
             // console.log('__DATA__', data);
             const { userId, socketId, peerId } = data;
-            update_user_connections(userId, socketId, peerId);
+            await update_user_connections(userId, socketId, peerId);
+            socket.emit("peer_id_saved", null)
         })
         socket.on('send_message', (data) => {
             console.log("received message from client side", data)
@@ -49,9 +50,26 @@ module.exports = server => {
 
         socket.on('call_config', (data) => {
             console.log("received call_config from client side", data)
-            // console.log('messages', messages);
             io.emit('call_config', data)
         })
+
+        // Callers info
+        socket.on('sender_caller', (data) => {
+            // console.log("received sender_caller from client side", data)
+            data = { callerSocketID: data.caller.socketID, recieverSocketID: data.receiver.socketID };
+            callers.push(data);
+        })
+
+        // Declined
+        socket.on('call_declined', (data) => {
+            // console.log("received call_config from client side", data)
+            const { socketId } = data;
+            const callerObj = callers.find(x => x.recieverSocketID == socketId);
+            socket.to(callerObj.callerSocketID).emit("call_declined", "Call declined by the user");
+            callers = callers.filter(x => x.recieverSocketID !== socketId);
+        })
+
+
 
         socket.on('call_disconnected', (data) => {
             console.log("received call_disconnected from client side", data)

@@ -72,9 +72,10 @@
   <table id="users">
     <thead>
       <tr>
+        <th>UserID</th>
         <th>Name</th>
-        <th>SocketID</th>
         <th>PeerID</th>
+        <th>SocketID</th>
         <th>Actions</th>
       </tr>
     </thead>
@@ -88,11 +89,21 @@
     <input id="input" autocomplete="off" /><button>Send</button>
   </form>
   <h4>Local</h4>
-  <video id="local_video" volume='0' autoplay
+  <video id="local_video" volume='1' autoplay
     style="height: 300px; width:300px; border-radius: 20px; border-color: #333; border-width: 20px; background: whitesmoke; ">
   </video>
   <h4>Remote</h4>
-  <video id="remote_video" volume='0' autoplay
+  <video id="remote_video" volume='1' autoplay
+    style="height: 300px; width:300px; border-radius: 20px; border-color: #333; border-width: 20px; background: whitesmoke; ">
+  </video>
+
+  <h4>Local Recorded</h4>
+  <video id="recorded_video" volume='0' autoplay controls
+    style="height: 300px; width:300px; border-radius: 20px; border-color: #333; border-width: 20px; background: whitesmoke; ">
+  </video>
+
+  <h4>Remote Recorded</h4>
+  <video id="remote_recorded_video" volume='0' autoplay controls
     style="height: 300px; width:300px; border-radius: 20px; border-color: #333; border-width: 20px; background: whitesmoke; ">
   </video>
 
@@ -101,7 +112,9 @@
 <script src="/socket.io/socket.io.js"></script>
 <script src="https://unpkg.com/peerjs@1.3.2/dist/peerjs.min.js"></script>
 <script>
-  const USER_ID = '63315aea77364cdb9763e600';
+  const params = new URLSearchParams(window.location.search)
+  const USER_ID = params.get('user_id') || '63315aea77364cdb9763e600';
+  console.log('USER_ID', USER_ID);
   const HOST = '192.168.100.34'; // cibaksocketio.herokuapp.com
   const SOCKET_PORT = 8191;
   const PEER_PORT = 9181;
@@ -128,18 +141,140 @@
     navigator.webkitGetUserMedia ||
     navigator.mozGetUserMedia ||
     navigator.msGetUserMedia;
+  const RECORDING_OPTIONS = {
+    // audio, video, canvas, gif
+    type: 'video',
+
+    // audio/webm
+    // audio/webm;codecs=pcm
+    // video/mp4
+    // video/webm;codecs=vp9
+    // video/webm;codecs=vp8
+    // video/webm;codecs=h264
+    // video/x-matroska;codecs=avc1
+    // video/mpeg -- NOT supported by any browser, yet
+    // audio/wav
+    // audio/ogg  -- ONLY Firefox
+    // demo: simple-demos/isTypeSupported.html
+    mimeType: 'video/webm',
+
+    // MediaStreamRecorder, StereoAudioRecorder, WebAssemblyRecorder
+    // CanvasRecorder, GifRecorder, WhammyRecorder
+    // recorderType: MediaStreamRecorder,
+
+    // disable logs
+    disableLogs: true,
+
+    // get intervals based blobs
+    // value in milliseconds
+    timeSlice: 1000,
+
+    // requires timeSlice above
+    // returns blob via callback function
+    ondataavailable: function (blob) { },
+
+    // auto stop recording if camera stops
+    checkForInactiveTracks: false,
+
+    // requires timeSlice above
+    onTimeStamp: function (timestamp) { console.log('[onTimeStamp]', timestamp); },
+
+    // both for audio and video tracks
+    bitsPerSecond: 128000,
+
+    // only for audio track
+    // ignored when codecs=pcm
+    audioBitsPerSecond: 128000,
+
+    // only for video track
+    videoBitsPerSecond: 128000,
+
+    // used by CanvasRecorder and WhammyRecorder
+    // it is kind of a "frameRate"
+    frameInterval: 90,
+
+    // if you are recording multiple streams into single file
+    // this helps you see what is being recorded
+    previewStream: function (stream) { console.log('[previewStream]', stream); },
+
+    // used by CanvasRecorder and WhammyRecorder
+    // you can pass {width:640, height: 480} as well
+    video: HTMLVideoElement,
+
+    // used by CanvasRecorder and WhammyRecorder
+    canvas: {
+      width: 640,
+      height: 480
+    },
+
+    // used by StereoAudioRecorder
+    // the range 22050 to 96000.
+    sampleRate: 96000,
+
+    // used by StereoAudioRecorder
+    // the range 22050 to 96000.
+    // let us force 16khz recording:
+    desiredSampRate: 16000,
+
+    // used by StereoAudioRecorder
+    // Legal values are (256, 512, 1024, 2048, 4096, 8192, 16384).
+    bufferSize: 16384,
+
+    // used by StereoAudioRecorder
+    // 1 or 2
+    numberOfAudioChannels: 2,
+
+    // used by WebAssemblyRecorder
+    frameRate: 30,
+
+    // used by WebAssemblyRecorder
+    bitrate: 128000,
+
+    // used by MultiStreamRecorder - to access HTMLCanvasElement
+    elementClass: 'multi-streams-mixer'
+  }
+  async function recordStream(stream, userType = 'local') {
+    let recorder = new RecordRTCPromisesHandler(stream, { ...RECORDING_OPTIONS });
+    recorder.startRecording();
+
+    const sleep = m => new Promise(r => setTimeout(r, m));
+    await sleep(10000);
+    await recorder.stopRecording();
+    let blob = await recorder.getBlob();
+    console.log('[Recorded blob]', blob);
+    let recorded_video = null;
+    if (userType === 'local') {
+      recorded_video = document.getElementById("recorded_video");
+    } else {
+      recorded_video = document.getElementById("remote_recorded_video");
+    }
+    var videoUrl = window.URL.createObjectURL(blob)
+    console.log('videoUrl', videoUrl);
+    recorded_video.src = videoUrl
+    // invokeSaveAsDialog(blob);
+  }
   function call(partnerId) {
     console.log('[call].partnerId', partnerId);
     getUserMedia({ video: true, audio: true }, function (localStream) {
       // Show Local stream in some video/canvas element.
+      socket.emit("call_config", {
+        "CallingMode": 1,
+        "icon": 10,
+        "id": 1,
+        "name": "videoCall",
+        "navigationPath": "Caller"
+      })
       const local_video_element = document.getElementById("local_video");
       local_video_element.srcObject = localStream;
+      recordStream(localStream, 'local');
       var call = peer.call(partnerId, localStream);
 
       call.on('stream', function (remoteStream) {
         // Show Remote stream in some video/canvas element.
         const remote_video_element = document.getElementById("remote_video");
         remote_video_element.srcObject = remoteStream;
+        recordStream(remoteStream, 'remote');
+
       });
     }, function (err) {
       console.log('Failed to get local stream', err);
@@ -165,6 +300,10 @@
     messages.appendChild(item2);
     window.scrollTo(0, document.body.scrollHeight);
   });
+  socket.on('peer_id_saved', (data) => {
+    console.log('[peer_id_saved].data', data);
+    get_users();
+  })
   //  Local Peer ID
   peer.on('open', function (id) {
     console.log('My peer ID is: ' + id);
@@ -190,12 +329,13 @@
 
       const local_video_element = document.getElementById("local_video");
       local_video_element.srcObject = localStream;
-
+      recordStream(localStream, 'local');
       call.answer(localStream); // Answer the call with an A/V stream.
       call.on('stream', function (remoteStream) {
         // Show stream in some video/canvas element.
         const remote_video_element = document.getElementById("remote_video");
         remote_video_element.srcObject = remoteStream;
+        recordStream(remoteStream, 'remote');
       });
     }, function (err) {
       console.log('Failed to get local stream', err);
@@ -209,7 +349,7 @@
   });
   peer.on('error', function (err) { console.log('An error accured in peer connection', err); })
 
-  window.document.onload = function (e) {
+  function get_users() {
     console.log('ready..');
     fetch('/User/users').then(res => res.json()).then(({ data }) => {
       const _users = data.users
@@ -217,6 +357,7 @@
       var user_table_body = document.getElementById('user_table_body');
       (_users || []).map((user, index) => {
         let tr = document.createElement('tr');
+        let user_id = document.createElement('td');
         let item1 = document.createElement('td');
         let item2 = document.createElement('td');
         let item3 = document.createElement('td');
@@ -227,9 +368,11 @@
         btn.value = "Call";
         btn.onclick = function () { call(user.peerID) }
         item1.textContent = `${user.name}`;
-        item2.textContent = `${user.socketID}`;
-        item3.textContent = `${user.peerID}`;
+        item2.textContent = `${user.peerID}`;
+        item3.textContent = `${user.socketID}`;
+        user_id.textContent = `${user._id}`
         item4.appendChild(btn);
+        tr.appendChild(user_id);
         tr.appendChild(item1);
         tr.appendChild(item2);
         tr.appendChild(item3);
@@ -238,8 +381,18 @@
       })
     }).catch((error) => { console.log('__Error__', error) })
   }
-  window.document.onload();
 
 </script>
+<!-- recommended -->
+<script src="https://www.WebRTC-Experiment.com/RecordRTC.js"></script>
+
+<!-- use 5.6.2 or any other version on cdnjs -->
+<!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/RecordRTC/5.6.2/RecordRTC.js"></script> -->
+
+<!-- NPM i.e. "npm install recordrtc" -->
+<!-- <script src="node_modules/recordrtc/RecordRTC.js"></script> -->
+
+<!-- bower -->
+<!-- <script src="bower_components/recordrtc/RecordRTC.js"></script> -->
 
 </html>
