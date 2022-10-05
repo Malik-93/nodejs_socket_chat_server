@@ -11,6 +11,4 @@ module.exports = (localNetworkIP = '') => {
     peerServer.on('disconnect', (client) => console.log('[peerServer].disconnect', client.getId()));
     peerServer.on('error', err => console.log('[peerServer].error', err));
     // app.use('/peerjs', peerServer);
-
-    console.log()
 }
