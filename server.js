@@ -1,3 +1,5 @@
+const dotenv = require('dotenv');
+dotenv.config();
 const express = require('express');
 var bodyParser = require('body-parser');
 const app = express();
@@ -7,10 +9,8 @@ const initPeer = require('./src/peer');
 const initSocketIO = require('./src/socket');
 const user_routes = require('./src/user/users.routes');
 const { get_network_ip } = require('./src/utils');
-const PORT = process.env.STABLE_LOCAL_BRANCH_SERVER_AND_SOCKET_PORT || 8191;
 const localNetworkIP = get_network_ip();
-const dotenv = require('dotenv');
-dotenv.config();
+const PORT = process.env.SAME_ORIGIN_STABLE_LOCAL_BRANCH_SERVER_AND_SOCKET_PORT || 8191;
 require('./src/config/database');
 app.use(bodyParser.urlencoded({ extended: true }))
 app.use(express.json())
