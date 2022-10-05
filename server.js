@@ -24,6 +24,6 @@ const server = http.createServer(app);
 initSocketIO(server);
 // INIT PEER SERVER CONNECTIONS
 initPeer(localNetworkIP);
-server.listen(PORT, `${localNetworkIP}`, () => {
+server.listen(PORT, () => {
   console.log(`Server is listening at ipv4 http://${localNetworkIP}:${PORT}/`);
 });
