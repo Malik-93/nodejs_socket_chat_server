@@ -7,7 +7,7 @@ const initPeer = require('./src/peer');
 const initSocketIO = require('./src/socket');
 const user_routes = require('./src/user/users.routes');
 const { get_network_ip } = require('./src/utils');
-const PORT = process.env.PORT || 8191;
+const PORT = process.env.STABLE_LOCAL_BRANCH_SERVER_AND_SOCKET_PORT || 8191;
 const localNetworkIP = get_network_ip();
 const dotenv = require('dotenv');
 dotenv.config();
